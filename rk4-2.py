@@ -23,14 +23,9 @@ def rk4(x, y, n, h):
     # h  --> xの増加ステップ
     
     c = (0, 0.5, 0.5, 1)    #4次
-    k = []
-    f = []
-    tmp = []
-    
-    for i in range(n):
-        k.append([0, 0, 0, 0])
-        f.append(0)
-        tmp.append(0)
+    k = np.zeros((n, 4))
+    f = np.zeros(n)
+    tmp = np.zeros(n)
 
     for j in range(4):
         for i in range(n):
@@ -53,7 +48,7 @@ h = 1.0e-3      #刻み
 Nmax = 20000    #計算回数
 step = 200      #表示間隔
 n = 2
-y = [0, 0]
+y = np.zeros(n)
 
 #初期値
 x = 0
