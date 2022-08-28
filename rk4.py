@@ -8,9 +8,10 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
+
 def grk(x, y):
     #計算する関数
-    f = [0, 0]
+    f = np.zeros(1)
     f[0] = -y[0] * math.sin(x)
     return f
 
@@ -34,9 +35,9 @@ def rk4(x, y, n, h):
         for i in range(n):
             k[i][j] = h * f[i]
 
-    x = x + h
+    x += h
     for i in range(n):
-        y[i] = y[i] + (k[i][0] + k[i][3]) / 6 + (k[i][1] + k[i][2]) / 3
+        y[i] += (k[i][0] + k[i][3]) / 6 + (k[i][1] + k[i][2]) / 3
 
     return x, y
 
