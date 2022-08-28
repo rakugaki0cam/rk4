@@ -8,10 +8,11 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-def grk(x, y, f):
+def grk(x, y):
     #計算する関数
+    f = [0, 0]
     f[0] = -y[0] * math.sin(x)
-    return x, y, f
+    return f
 
 def rk4(x, y, n, h):
     #4次ルンゲクッタ法によって解を求める
@@ -34,7 +35,7 @@ def rk4(x, y, n, h):
         for i in range(n):
             tmp[i] = y[i] + k[i][j] * c[j]
         tx = x + c[j] * h
-        _, _, f = grk(tx, tmp, f)
+        f = grk(tx, tmp)
         for i in range(n):
             k[i][j] = h * f[i]
 
@@ -64,7 +65,7 @@ for i in range(Nmax):
     x, y = rk4(x, y, n, h)
     if (i % step == 0):
         #表示
-        print(x, y[0])
+        print(x, y[0:n])
         gx.append(x)
         gy.append(y[0])
 
