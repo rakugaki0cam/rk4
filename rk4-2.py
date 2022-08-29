@@ -67,7 +67,18 @@ for i in range(Nmax):
         gy.append(y[0])
 
 #グラフ表示
-plt.plot(gx, gy)
+gx2 = []
+gy2 = []
+for i in range(0, 200):
+    x = float(i / 10)
+    y = math.exp(-0.15 * x) * math.cos(math.sqrt(1 - 0.15 ** 2) * x)
+    gx2.append(x)
+    gy2.append(y)
+
+plt.plot(gx, gy, linestyle = 'None', marker = 'x', markeredgecolor = 'r')
+plt.plot(gx2, gy2, color = 'g')
+plt.xlabel('x')
+plt.ylabel('y')
 plt.show()
 
 
