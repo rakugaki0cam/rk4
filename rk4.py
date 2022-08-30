@@ -23,13 +23,13 @@ def rk4(x, y, n, h):
     # h  --> xの増加ステップ
     
     c = (0, 0.5, 0.5, 1)    #4次
-    k = np.zeros((n, 4))
+    k = np.zeros((n, 5))
     f = np.zeros(n)
     tmp = np.zeros(n)
 
     for j in range(4):
         for i in range(n):
-            tmp[i] = y[i] + k[i][j] * c[j]
+            tmp[i] = y[i] + k[i][j - 1] * c[j]
         tx = x + c[j] * h
         f = grk(tx, tmp)
         for i in range(n):
@@ -37,7 +37,7 @@ def rk4(x, y, n, h):
 
     x += h
     for i in range(n):
-        y[i] += (k[i][0] + k[i][3]) / 6 + (k[i][1] + k[i][2]) / 3
+        y[i] += (k[i][1] + 2 * k[i][2] + 2 * k[i][3] + k[i][4]) / 6
 
     return x, y
 
