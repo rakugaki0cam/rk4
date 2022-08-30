@@ -46,6 +46,7 @@ def rk4(x, y, n, h):
 
     x += h
     #解yの計算
+    #解yの計算
     for i in range(n):
         for j in range(s):
             y[i] += b[j] * k[i][j]
