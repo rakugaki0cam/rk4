@@ -27,10 +27,10 @@ def rk4(x, y, n, h):
     f = np.zeros(n)
     tmp = np.zeros(n)
 
-    for j in range(4):
+    for j in range(1,4):
         for i in range(n):
-            tmp[i] = y[i] + k[i][j - 1] * c[j]
-        tx = x + c[j] * h
+            tmp[i] = y[i] + k[i][j - 1] * c[j-1]
+        tx = x + c[j-1] * h
         f = grk(tx, tmp)
         for i in range(n):
             k[i][j] = h * f[i]
