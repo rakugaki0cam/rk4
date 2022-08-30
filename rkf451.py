@@ -23,66 +23,54 @@ def grk(x, y):
 #print(a, b, c, Rc)
 
 
-def dkf45(N, x, h, y, xbound, info, tol, ik):
-   #------------
-   #return
-   #info = -2  (Failed. calclation range has already over.)
-   #     = -1  (Failed.
-   #             h becomes too small. change tol or check condition of func.)
-   #     =  0  (Success. running now)
-   #     =  1  (Success. x reach xbound normally)
-   #------------
+def dkf45(x, y, N, tol, h):
+    #------------
+    #return
+    #info = -2  (Failed. calclation range has already over.)
+    #     = -1  (Failed.
+    #             h becomes too small. change tol or check condition of func.)
+    #     =  0  (Success. running now)
+    #     =  1  (Success. x reach xbound normally)
+    #------------
 
-      #implicit none
-       #interface
-      #   def func(iN,ix,iy,is,iik)
-      #     implicit none
-      #     integer,intent(in)::iN,is,iik
-      #      double precision,intent(in)::ix,iy(1:iN)
-      #      double precision::func
-      #    end def func
-      # end interface
-    #integer,intent(in)::N,ik
-    #double precision,intent(in)::xbound
-    #double precision,intent(in)::tol
-    #double precision,intent(inout)::x,h,y(1:N)
-    #integer,intent(inout)::info
-    #double precision,parameter::
-   hmin = 1e-14
-   hmax = 1
-    #integer::i,j,FLAG
-    #double precision::R,delta,tx,tmp(1:N),K(1:s,1:N),Sy,err
-   K = np.zeros((s, N))
+    hmin = 1e-14
+    hmax = 1
+    s = 6
+    K = np.zeros((s, N))
 
-   #ルンゲクッタ法のブッチャーテーブル準備
-   global a, b, c, Rc, s
+    #ルンゲクッタ法のブッチャーテーブル準備
+    global a, b, Rc
 
     #5次6段
     s = 6    #次数
     a = np.zeros((s, s))
     b = np.zeros((2, s))
 
-    c = (0, 0.25, 3/8, 12/13, 1, 0.5)
+    c = (0, 1/4, 3/8, 12/13, 1, 1/2)
     a[0] = (0, 0, 0, 0, 0, 0)
-    a[1] = (0.25, 0, 0, 0, 0, 0)
-    a[2] = (0.09375, 0.28125, 0, 0, 0, 0)
+    a[1] = (1/4, 0, 0, 0, 0, 0)
+    a[2] = (3/32, 9/32, 0, 0, 0, 0)
     a[3] = (1932/2197, -7200/2197, 7296/2197, 0, 0, 0)
     a[4] = (439/216, -8, 3680/513, -845/4104, 0, 0)
     a[5] = (-8/27, 2, -3544/2565, 1859/4104, -11/40, 0)
 
-    b[0] = (25/216, 0, 1408/2565, 2197/4104, -0.2, 0)  
-    b[1] = (16/135, 0, 6656/12825, 28561/56430, -9/50, 2/55)
+    b[0] = (25/216, 0, 1408/2565, 2197/4104, -0.2, 0)           ####
+    b[1] = (16/135, 0, 6656/12825, 28561/56430, -9/50, 2/55)########0-1反対では
     Rc = (1/360, 0, -128/4275, -2197/75240, 1/50, 2/55)
   
-      
+    key = 0
+    tx = np.zeros(N)
+    tf = np.zeros(N)
+    K = np.zeros((N, 7))
+
     if(abs(h) >= hmax):
         if(h <= 0):
             h = -hmax
         else:
             h = hmax
   
-    FLAG=1
-    if(abs(x - xbound) <= 1e-15):
+    FLAG = 1
+    if(abs(x - xbound) <= hmin):
         info = 1
         FLAG = 0
     else:
@@ -100,24 +88,21 @@ def dkf45(N, x, h, y, xbound, info, tol, ik):
             FLAG = 0
             raise Exception("stop")
 
-    if((h <= 0) and (xbound - x >= 0)):
-        info = -2
-        FLAG = 0
-    elif((h > 0) and (xbound - x <= 0)):
-        info = -2
-        FLAG = 0
-
+    
 
     while(FLAG == 1):
-        tx = x
+        i = 1
+        
         for j in range(s):
-            tx = x + c[j] * h #############
-            tmp = y
+            tx = x + c[j] * h
+            ty = y
             for i in range(j - 1):
-                #tmp(1:N) = tmp(1:N) + K(i, 1:N) * a(j, i) ##############################
-                temp
+                ty[i] = ty[i] + K[i][j] * a[j][i]
+
+            tf[i] = grk(tx, ty)
+
             for i in range(N):
-                K[j, i] = h * func(N, tx, tmp, i, ik) ###############################FUNC()
+                K[j][i] = h * tf[i]
                 
 
         #step 4
@@ -125,24 +110,24 @@ def dkf45(N, x, h, y, xbound, info, tol, ik):
         for i in range(N):
             R += (Rc[1] * K[1][i] + Rc[3] * K[3][i] + Rc[4] * K[4][i] + Rc[5] * K[5][i] + Rc [6] * K[6][i]) ** 2
         
-        R = abs(dsqrt(R) / h)
+        R = abs(math.sqrt(R) / h)
 
         Sy = 0
         for i in range(N):
-            Sy = Sy + (y[i] * y[i])
+            Sy = Sy + (y[i] ** 2)
 
 
-        Sy = dsqrt(Sy)
+        Sy = math.sqrt(Sy)
         if(Sy >= 1):
             err = tol * Sy
         else:
             err = tol
         
         #step 5
-        if(R <= err):
+        if((R <= err) or (key == 1)):
             x = x + h  
             for i in range(s):
-                y(1:N) = y(1:N) + b[0][i] * K(i, 1:N) ##########################
+                y[i] = y[i] + b[0][i] * K[i][i] ##########################
             FLAG = 0
         
         #step 6
@@ -176,8 +161,19 @@ def dkf45(N, x, h, y, xbound, info, tol, ik):
             if(abs(h) <= hmin):
                 info = 1
                 FLAG = 0
-      
-    return info #################################
+
+        if((h <= 0) and (xbound - x >= 0)):
+            info = -2
+            FLAG = 0
+        elif((h > 0) and (xbound - x <= 0)):
+            info = -2
+            FLAG = 0
+        
+    if(key == 1):
+        print("Strange point between ", x - h, " and ", x)
+        info = -9
+
+    return x, y, info #################################
 
 
 
@@ -191,6 +187,9 @@ y = np.zeros(n)
 
 #初期値
 x = 0
+xbound = 10
+tol = 1e-8
+N = 1
 y[0] = 1
 y[1] = -0.15
 
@@ -198,7 +197,7 @@ gx = []
 gy = []
 
 for i in range(Nmax):
-    x, y = rk4(x, y, n, h)
+    x, y, info = dkf45(x, y, N, tol, h)
     if (i % step == 0):
         #表示
         print(x, y[0:n])

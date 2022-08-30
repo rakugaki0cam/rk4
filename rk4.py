@@ -9,35 +9,48 @@ import math
 import matplotlib.pyplot as plt
 
 
-def grk(x, y):
+def grk(x, y, n):
     #計算する関数
-    f = np.zeros(1)
+    # x: 変数
+    # y: 解
+    # n: 方程式数
+
+    f = np.zeros(n)
     f[0] = -y[0] * math.sin(x)
     return f
 
 def rk4(x, y, n, h):
     #4次ルンゲクッタ法によって解を求める
-    # x  --> 変数
-    # y  --> 解
-    # n  --> 方程式数（1階微分方程式:n=1,連立1階微分方程式:n=2)
-    # h  --> xの増加ステップ
+    # x: 変数
+    # y: 解
+    # n: 方程式数（1階微分方程式:n=1,連立1階微分方程式:n=2)
+    # h: xの増加ステップ
     
-    c = (0, 0.5, 0.5, 1)    #4次
-    k = np.zeros((n, 4))
-    f = np.zeros(n)
-    tmp = np.zeros(n)
+    s = 4                       #次数
+    c = (0, 0.5, 0.5, 1)        #4次　c1〜cs
+    b = (1/6, 1/3, 1/3, 1/6)    #重み付け　b1〜s
+    k = np.zeros((n, s))
+    fn = np.zeros(n)
+    ty = np.zeros(n)
 
-    for j in range(4):
-        for i in range(n):
-            tmp[i] = y[i] + k[i][j] * c[j]
+    #係数の計算
+    for j in range(s):
         tx = x + c[j] * h
-        f = grk(tx, tmp)
         for i in range(n):
-            k[i][j] = h * f[i]
+            if(j == 0):
+                ty[i] = y[i]
+            else:
+                ty[i] = y[i] +  c[j] * k[i][j - 1]
+
+        fn = grk(tx, ty, n)
+        for i in range(n):
+            k[i][j] = h * fn[i]
 
     x += h
+    #解yの計算
     for i in range(n):
-        y[i] += (k[i][0] + k[i][3]) / 6 + (k[i][1] + k[i][2]) / 3
+        for j in range(s):
+            y[i] += b[j] * k[i][j]
 
     return x, y
 
