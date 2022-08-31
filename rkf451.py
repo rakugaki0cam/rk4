@@ -60,7 +60,10 @@ def dkf45(x, y, N, tol, h):
   
     key = 0
     tx = np.zeros(N)
+    ty = np.zeros(N)
     tf = np.zeros(N)
+    R  = np.zeros(N)
+
     K = np.zeros((N, 7))
 
     if(abs(h) >= hmax):
@@ -95,21 +98,23 @@ def dkf45(x, y, N, tol, h):
         
         for j in range(s):
             tx = x + c[j] * h
-            ty = y
-            for i in range(j - 1):
-                ty[i] = ty[i] + K[i][j] * a[j][i]
+            #ty = y
+            for i in range(j):
+                if(j == 0):
+                    ty[i] = y[i]
+                else:
+                    ty[i] = y[i] + a[j][i] * K[i][j]
 
             tf[i] = grk(tx, ty)
 
             for i in range(N):
-                K[j][i] = h * tf[i]
+                K[i][j] = h * tf[i]
                 
 
         #step 4
         R = 0
         for i in range(N):
-            R += (Rc[1] * K[1][i] + Rc[3] * K[3][i] + Rc[4] * K[4][i] + Rc[5] * K[5][i] + Rc [6] * K[6][i]) ** 2
-        
+            R[i] += (Rc[0] * K[0][i] + Rc[1] * K[1][i]+ Rc[2] * K[2][i] + Rc[3] * K[3][i] + Rc[4] * K[4][i] + Rc[5] * K[5][i]) ** 2
         R = abs(math.sqrt(R) / h)
 
         Sy = 0
@@ -127,7 +132,7 @@ def dkf45(x, y, N, tol, h):
         if((R <= err) or (key == 1)):
             x = x + h  
             for i in range(s):
-                y[i] = y[i] + b[0][i] * K[i][i] ##########################
+                y[i] = y[i] + b[0][i] * K[0][i] ##########################
             FLAG = 0
         
         #step 6
