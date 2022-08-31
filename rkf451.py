@@ -104,9 +104,7 @@ def dkf45(x, y, N, tol, h):
                     ty[i] = y[i]
                 else:
                     ty[i] = y[i] + a[j][i] * K[i][j]
-
-            tf[i] = grk(tx, ty)
-
+                tf[i] = grk(tx, ty)
             for i in range(N):
                 K[i][j] = h * tf[i]
                 
