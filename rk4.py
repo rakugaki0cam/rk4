@@ -39,7 +39,7 @@ def rk4(x, y, n, h):
                 ty[i] = y[i]
             else:
                 ty[i] = y[i] +  c[j] * k[i][j - 1]
-            fn = grk(tx, ty, n) 
+        fn = grk(tx, ty, n) 
         for i in range(n):
             k[i][j] = h * fn[i]
 
