@@ -16,9 +16,10 @@ def grk(x, y, n):
     # y: 解
     # n: 方程式数
     f = np.zeros(n)
+    ganma = 0.15
 
-    f[0] = y[1]
-    f[1] = -0.3 * y[1] - y[0]
+    f[0] = y[1]                         #dy/dx = v
+    f[1] = -2 * ganma * y[1] - y[0]     #dv/dx = -2 * ganma * v - y
     return f
 
 def dkf45(x, y, N, tol, h):
