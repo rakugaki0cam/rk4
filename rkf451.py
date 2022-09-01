@@ -10,18 +10,16 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-def grk(x, y):
+def grk(x, y, n):
     #計算する関数
-    f = np.zeros(1)
-    f[0] = -y[0] * math.sin(x)
-    ################### f(0) = y(0) * math.cos(x)
+    # x: 変数
+    # y: 解
+    # n: 方程式数
+    f = np.zeros(n)
+
+    f[0] = y[1]
+    f[1] = -0.3 * y[1] - y[0]
     return f
-
-
-##TEST ---------------------------------
-#a, b, c, Rc = rk_preparation('rk4')
-#print(a, b, c, Rc)
-
 
 def dkf45(x, y, N, tol, h):
     #------------
@@ -35,16 +33,18 @@ def dkf45(x, y, N, tol, h):
 
     hmin = 1e-14
     hmax = 1
-    s = 6
-    K = np.zeros((s, N))
+    info = 0
+    S = 6
+    K = np.zeros((S, N))
+
 
     #ルンゲクッタ法のブッチャーテーブル準備
     global a, b, Rc
 
     #5次6段
-    s = 6    #次数
-    a = np.zeros((s, s))
-    b = np.zeros((2, s))
+    S = 6    #次数
+    a = np.zeros((S, S))
+    b = np.zeros((2, S))
 
     c = (0, 1/4, 3/8, 12/13, 1, 1/2)
     a[0] = (0, 0, 0, 0, 0, 0)
@@ -54,8 +54,8 @@ def dkf45(x, y, N, tol, h):
     a[4] = (439/216, -8, 3680/513, -845/4104, 0, 0)
     a[5] = (-8/27, 2, -3544/2565, 1859/4104, -11/40, 0)
 
-    b[0] = (25/216, 0, 1408/2565, 2197/4104, -0.2, 0)           ####
-    b[1] = (16/135, 0, 6656/12825, 28561/56430, -9/50, 2/55)########0-1反対では
+    b[0] = (25/216, 0, 1408/2565, 2197/4104, -0.2, 0)           #4次
+    b[1] = (16/135, 0, 6656/12825, 28561/56430, -9/50, 2/55)    #5次
     Rc = (1/360, 0, -128/4275, -2197/75240, 1/50, 2/55)
   
     key = 0
@@ -63,7 +63,6 @@ def dkf45(x, y, N, tol, h):
     ty = np.zeros(N)
     tf = np.zeros(N)
     R  = np.zeros(N)
-
     K = np.zeros((N, 7))
 
     if(abs(h) >= hmax):
@@ -82,42 +81,42 @@ def dkf45(x, y, N, tol, h):
             print("====Err info====")
             print("x    --> ", x)
             print("h    --> ", h)
-
-            for i in range(N):
-                print("y(",i,") --> ",y(i))
-            
+            for n in range(N):
+                print("y(",n,") --> ",y(n))
             print("================")
             info = -1
             FLAG = 0
             raise Exception("stop")
 
-    
-
     while(FLAG == 1):
-        i = 1
-        
-        for j in range(s):
-            tx = x + c[j] * h
-            #ty = y
-            for i in range(j):
-                if(j == 0):
-                    ty[i] = y[i]
+        #係数の計算
+        for s in range(S):
+            tx = x + c[s] * h
+            for n in range(N):                          # in range(j):　bのかわりにaを使う時
+                if(s == 0):
+                    ty[n] = y[n]
                 else:
-                    ty[i] = y[i] + a[j][i] * K[i][j]
-                tf[i] = grk(tx, ty)
-            for i in range(N):
-                K[i][j] = h * tf[i]
+                    #ty[i] = y[i] + a[j][i] * K[i][j]   # bのかわりにaを使う方法
+                    ty[n] = y[n] + c[s] * K[n][s - 1]
+            tf = grk(tx, ty, N)
+            for n in range(N):
+                K[n][s] = h * tf[n]
                 
-
         #step 4
         R = 0
-        for i in range(N):
-            R[i] += (Rc[0] * K[0][i] + Rc[1] * K[1][i]+ Rc[2] * K[2][i] + Rc[3] * K[3][i] + Rc[4] * K[4][i] + Rc[5] * K[5][i]) ** 2
-        R = abs(math.sqrt(R) / h)
+        q = 0
+        for n in range(N):
+            for s in range(S):
+                q += Rc[s] * K[n][s]
+            #R[i] += (Rc[0] * K[0][i] + Rc[1] * K[1][i]+ Rc[2] * K[2][i] + Rc[3] * K[3][i] + Rc[4] * K[4][i] + Rc[5] * K[5][i]) ** 2
+            R += q ** 2
+
+        R = abs(math.sqrt(R)) / h
+
 
         Sy = 0
-        for i in range(N):
-            Sy = Sy + (y[i] ** 2)
+        for n in range(N):
+            Sy = Sy + (y[n] ** 2)
 
 
         Sy = math.sqrt(Sy)
@@ -128,9 +127,11 @@ def dkf45(x, y, N, tol, h):
         
         #step 5
         if((R <= err) or (key == 1)):
+            #解yの計算
             x = x + h  
-            for i in range(s):
-                y[i] = y[i] + b[0][i] * K[0][i] ##########################
+            for n in range(N):
+                for s in range(S):
+                    y[n] += b[0][s] * K[n][s] 
             FLAG = 0
         
         #step 6
@@ -142,33 +143,34 @@ def dkf45(x, y, N, tol, h):
 
         #step 7
         if(delta <= 0.1):
-            #def changes dramatically.
+            #現在の刻み幅hは大きすぎる
             h = 0.1 * h
         elif(delta >= 4):
-            #def changes loosely.
+            #現在の刻み幅は小さすぎる
             h = 4 * h
         else:
-            #def changes moderately.
+            #刻み幅を適正値に修正する
             h = delta * h
 
         #step 8
-        if(abs(h) <= hmax):
+        if(abs(h) >= hmax):
+            #刻み幅がmaxを超えないように
             if(h <= 0):
                 h = -hmax
             else:
                 h = hmax
 
         #step 9
-        if(abs(xbound-x) <= abs(h)):
+        if(abs(xbound - x) <= abs(h)):
             h = xbound - x
             if(abs(h) <= hmin):
                 info = 1
                 FLAG = 0
 
-        if((h <= 0) and (xbound - x >= 0)):
+        if((h <= 0) and ((xbound - x) >= 0)):
             info = -2
             FLAG = 0
-        elif((h > 0) and (xbound - x <= 0)):
+        elif((h > 0) and ((xbound - x) <= 0)):
             info = -2
             FLAG = 0
         
@@ -176,43 +178,48 @@ def dkf45(x, y, N, tol, h):
         print("Strange point between ", x - h, " and ", x)
         info = -9
 
-    return x, y, info #################################
+    return x, y, info, h
 
 
 
 # MAIN ------------------------------------------------------------
 
-h = 1.0e-3      #刻み
-Nmax = 20000    #計算回数
-step = 200      #表示間隔
-n = 2
-y = np.zeros(n)
-
-#初期値
 x = 0
-xbound = 10
-tol = 1e-8
-N = 1
+xbound = 20     #x終了値
+#初期値
+N = 2
+y = np.zeros(N)
 y[0] = 1
 y[1] = -0.15
 
 gx = []
 gy = []
 
-for i in range(Nmax):
-    x, y, info = dkf45(x, y, N, tol, h)
-    if (i % step == 0):
-        #表示
-        print(x, y[0:n])
+tol = 1e-8  #計算精度
+h = xbound - x  #刻み
+i = 0
+info = 0
+step = 200
+
+while(info <= 0):
+    x, y, info, h = dkf45(x, y, N, tol, h)
+    if(i % step == 0):
+        print(x, y[0:N], h)
         gx.append(x)
         gy.append(y[0])
+    i += 1
+print("計算回数",i)    
+
 
 #グラフ表示
+ganma = 0.15
+v0 = -0.15
+y0 = 1
 gx2 = []
 gy2 = []
-for i in range(0, 200):
-    x = float(i / 10)
-    y = math.exp(-0.15 * x) * math.cos(math.sqrt(1 - 0.15 ** 2) * x)
+for i in range(0, 2000):
+    x = float(i / 100)
+    y = math.exp(-ganma * x) * math.cos(math.sqrt(1 - ganma ** 2) * x)
     gx2.append(x)
     gy2.append(y)
 

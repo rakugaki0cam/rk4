@@ -20,46 +20,47 @@ def grk(x, y, n):
     f[1] = -0.3 * y[1] - y[0]
     return f
 
-def rk4(x, y, n, h):
+def rk4(x, y, N, h):
     #4次ルンゲクッタ法によって解を求める
-    # x: 変数
-    # y: 解
-    # n: 方程式数（1階微分方程式:n=1,連立1階微分方程式:n=2)
-    # h: xの増加ステップ
-
+    # x:  変数
+    # y:  解
+    # nn: 方程式数（1階微分方程式:n=1,連立1階微分方程式:n=2)
+    # h:  xの増加ステップ
+    """
     #4次4段
     s = 4                       #次数
     c = (0, 0.5, 0.5, 1)        #4次        c1〜cs     
     b = (1/6, 1/3, 1/3, 1/6)    #重み付け   b1〜bs
     """
     #5次6段
-    s = 6
+    S = 6
     c = (0, 1/4, 3/8, 12/13, 1, 1/2)
-    b[0] = (25/216, 0, 1408/2565, 2197/4104, -0.2, 0)           ####
-    b[1] = (16/135, 0, 6656/12825, 28561/56430, -9/50, 2/55)########0-1反対では
+    b = np.zeros((2, S))
+    b[0] = (16/135, 0, 6656/12825, 28561/56430, -9/50, 2/55)    #5次
+    b[1] = (25/216, 0, 1408/2565, 2197/4104, -1/5, 0)           #4次
     Rc = (1/360, 0, -128/4275, -2197/75240, 1/50, 2/55)
-    """
-
-    k = np.zeros((n, s))
-    ty = np.zeros(n)
-    fn = np.zeros(n)
+    
+    k = np.zeros((N, S))
+    ty = np.zeros(N)
+    fn = np.zeros(N)
 
     #係数の計算
-    for j in range(s):
-        tx = x + c[j] * h
-        for i in range(n):
-            if(j == 0):
-                ty[i] = y[i]
+    for s in range(S):
+        tx = x + c[s] * h
+        for n in range(N):
+            if(s == 0):
+                ty[n] = y[n]
             else:
-                ty[i] = y[i] + c[j] * k[i][j - 1]
-        fn = grk(tx, ty, n)
-        for i in range(n):
-            k[i][j] = h * fn[i]
+                ty[n] = y[n] + c[s] * k[n][s - 1]
+        fn = grk(tx, ty, N)
+        for n in range(N):
+            k[n][s] = h * fn[n]
 
     #解yの計算
-    for i in range(n):
-        for j in range(s):
-            y[i] += b[j] * k[i][j]
+    for n in range(N):
+        for s in range(S):
+            y[n] += b[0][s] * k[n][s]       #5次
+            #y[n] += b[1][s] * k[n][s]      #4次
 
     x += h
     
