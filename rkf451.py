@@ -205,7 +205,7 @@ step = 200
 while(info <= 0):
     x, y, info, h = dkf45(x, y, N, tol, h)
     if(i % step == 0):
-        print(x, y[0:N], h)
+        print(i, x, y[0:N], h)
         gx.append(x)
         gy.append(y[0])
     i += 1
