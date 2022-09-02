@@ -43,8 +43,10 @@ def rk4(x, y, N, h):
     k = np.zeros((N, S))
     ty = np.zeros(N)
     fn = np.zeros(N)
-
-    #係数の計算
+    y5 = np.zeros(N)
+    y5 = y
+    
+    #係数Kの計算
     for s in range(S):
         tx = x + c[s] * h
         for n in range(N):
@@ -59,9 +61,9 @@ def rk4(x, y, N, h):
     #解yの計算
     for n in range(N):
         for s in range(S):
-            y[n] += b[0][s] * k[n][s]       #5次
-            #y[n] += b[1][s] * k[n][s]      #4次
-
+            y5[n] += b[0][s] * k[n][s]     #5次
+            y[n] += b[1][s] * k[n][s]      #4次
+        #print(y[n],y5[n])
     x += h
     
     return x, y
