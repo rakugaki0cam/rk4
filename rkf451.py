@@ -64,7 +64,19 @@ def dkf45(x, y, N, tol, h):
     tf = np.zeros(N)
     K = np.zeros((N, S))
     R = np.zeros(N)
+    y5 = np.zeros(N)    #.astype(np.float64)
     Rcnt = 0
+
+    Sy = 0
+    for n in range(N):
+        Sy += y[n] ** 2
+    Sy = math.sqrt(Sy)
+    if(Sy >= 1):
+        err = tol * Sy
+    else:
+        err = tol
+    #print("x ={:13.10f} tol ={:13.10f}".format(x, err))
+
 
     if(abs(h) >= hmax):
         if(h <= 0):
@@ -87,6 +99,8 @@ def dkf45(x, y, N, tol, h):
             info = -1
             FLAG = 0
             raise Exception("stop")
+
+    
 
     while(FLAG == 1):
         #係数Kの計算
@@ -112,30 +126,21 @@ def dkf45(x, y, N, tol, h):
             R += r[n] ** 2
         R = abs(math.sqrt(R) / h / N)
         Rcnt += 1
-        #print(n, "R =", R)
+        #print('{:3d}回目 刻み幅:h ={:10.7f}  差:R ={:13.10f}'.format(Rcnt, h, R))
 
-        Sy = 0
-        for n in range(N):
-            Sy += y[n] ** 2
-        Sy = math.sqrt(Sy)
-        if(Sy >= 1):
-            err = tol * Sy
-        else:
-            err = tol
-        
         #step 5
         #4次での解を計算
-        y5 = np.zeros(N)
-        y5 = y
+        for n in range(N):
+            y5[n] = y[n]
+
         if((R <= err) or (key == 1)):
             #print('R計算回数', Rcnt)
             x = x + h  
             for n in range(N):
                 for s in range(S):
                     y[n] += b[0][s] * K[n][s] 
-                    #y5[n] += b[1][s] * K[n][s] #5次
-
-                #print(y[n],y5[n], '差',n,y[n]-y5[n])
+                    y5[n] += b[1][s] * K[n][s] #5次
+                #print('y4[{:1d}] ={:20.16f}  y5[{:1d}] ={:20.16f} 差={:20.16f}'.format(n, y[n], n, y5[n], y[n] - y5[n]))
 
             FLAG = 0
         
@@ -145,13 +150,13 @@ def dkf45(x, y, N, tol, h):
             delta = (err / (2 * R)) ** (1 / 4)
         else:
             delta = 4
-
+        #print('delta =', delta)
         #step 7
         if(delta <= 0.1):
-            #現在の刻み幅hは大きすぎる
+            #現在の刻み幅hは大きすぎるので1/10にする
             h = 0.1 * h
         elif(delta >= 4):
-            #現在の刻み幅は小さすぎる
+            #現在の刻み幅は小さすぎるので4倍する
             h = 4 * h
         else:
             #刻み幅を適正値に修正する
@@ -213,7 +218,7 @@ while(info <= 0):
     x, y, info, h = dkf45(x, y, N, tol, h)
     i += 1
     if((i % step == 0) or (info == 1)):     #最終データも表示
-        print('{:8d} x:{:9.5f} y:{:13.9f} v:{:13.9f} h:{:9.6f}'.format(i, x, y[0], y[1], h))
+        print('{:8d} x:{:9.5f} y:{:13.9f} v:{:13.9f}   h:{:9.6f}'.format(i, x, y[0], y[1], h))
         gx.append(x)
         gy.append(y[0])
 print('計算回数 {:8d}回'.format(i))    
@@ -223,11 +228,13 @@ print('計算回数 {:8d}回'.format(i))
 ganma = 0.15
 v0 = -0.15
 y0 = 1
+A = 1       #####
+alfa = 0    #####
 gx2 = []
 gy2 = []
-for i in range(0, 2000):
-    x = float(i / 100)
-    y = math.exp(-ganma * x) * math.cos(math.sqrt(1 - ganma ** 2) * x)
+for i in range(0, 20000):
+    x = float(i / 1000)
+    y =  A * math.exp(-ganma * x) * math.cos(math.sqrt(1 - ganma ** 2) * x - alfa)
     gx2.append(x)
     gy2.append(y)
 
