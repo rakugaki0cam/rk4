@@ -35,7 +35,7 @@ def rk4(x, y, n, h):
     for j in range(s):
         tx = x + c[j] * h
         for i in range(n):
-            if(j == 0):
+            if j == 0:
                 ty[i] = y[i]
             else:
                 ty[i] = y[i] +  c[j] * k[i][j - 1]
@@ -70,7 +70,7 @@ gy = []
 
 for i in range(Nmax):
     x, y = rk4(x, y, n, h)
-    if (i % step == 0):
+    if i % step == 0:
         #表示
         print(x, y[0:n])
         gx.append(x)
